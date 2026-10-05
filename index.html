@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Protein Purification: Vectors and Fusion Tags</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F0F6F8;--ink:#0F2A33;--mut:#45626C;--card:#FFFFFF;--line:#C9DCE2;
+  --prot:#2A6FF0;--his:#7C4DD6;--gst:#128A5C;--mbp:#C96A0A;--int:#D63D7C;--teal:#0E8C93;
+  --junk:#93A6AD;--ni:#2FA866;--warn:#DC3F45;--yel:#F0B400;--reg:#5C7C99;--on:#FFFFFF;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1A20;--ink:#E8F3F5;--mut:#9DB7BF;--card:#12282F;--line:#274450;
+    --prot:#6FA0FF;--his:#AE92FF;--gst:#3DD598;--mbp:#FFA340;--int:#FF73A8;--teal:#37C4CC;
+    --junk:#6E858D;--ni:#4CD08A;--warn:#FF7479;--yel:#FFCB2E;--reg:#8DB0CC;--on:#08161B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1A20;--ink:#E8F3F5;--mut:#9DB7BF;--card:#12282F;--line:#274450;
+  --prot:#6FA0FF;--his:#AE92FF;--gst:#3DD598;--mbp:#FFA340;--int:#FF73A8;--teal:#37C4CC;
+  --junk:#6E858D;--ni:#4CD08A;--warn:#FF7479;--yel:#FFCB2E;--reg:#8DB0CC;--on:#08161B;
+}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  font:400 clamp(15px,1.9vw,19px)/1.45 Figtree,"Segoe UI",system-ui,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+main{flex:1;min-height:0;position:relative}
+h1,h2,h3{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;margin:0}
+.slide{position:absolute;inset:0;display:none;overflow-y:auto;overflow-x:hidden;padding:clamp(14px,2.6vw,36px) clamp(16px,5vw,64px) 28px;--c:var(--teal)}
+.slide.active{display:block;animation:sfade .35s both}
+.slide>*{max-width:1100px;margin-left:auto;margin-right:auto}
+.t-his{--c:var(--his)}.t-gst{--c:var(--gst)}.t-mbp{--c:var(--mbp)}.t-int{--c:var(--int)}.t-pet{--c:var(--teal)}
+.hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:.5em}
+h2{font-size:clamp(1.5rem,4.4vw,2.6rem);line-height:1.1;font-weight:800;letter-spacing:-.01em}
+.pill{display:inline-flex;align-items:center;gap:.45em;border:1.5px solid var(--c);border-radius:99px;padding:.1em .8em;font-size:.82rem;font-weight:600;color:var(--ink);white-space:nowrap}
+.pill::before{content:"";width:.6em;height:.6em;border-radius:50%;background:var(--c)}
+.lead{font-size:clamp(1rem,2.2vw,1.3rem);color:var(--mut);margin:.2em 0 .8em}
+.bl{list-style:none;padding:0;margin:.5em 0;display:grid;gap:.6em}
+.bl li{position:relative;padding-left:1.4em;font-size:clamp(1rem,2.05vw,1.22rem);line-height:1.38}
+.bl li::before{content:"";position:absolute;left:.15em;top:.5em;width:.58em;height:.58em;border-radius:50%;background:var(--c)}
+.bl.sm li{font-size:clamp(.92rem,1.8vw,1.08rem)}
+b,strong{font-weight:700}
+.slide.active .b{animation:pop .5s both;animation-delay:calc(var(--n,0)*.3s + .15s)}
+.two{display:grid;grid-template-columns:1fr;gap:18px;align-items:center}
+@media(min-width:820px){.two{grid-template-columns:1fr 1fr}.two.l{grid-template-columns:1.2fr .8fr}.two.r{grid-template-columns:.85fr 1.15fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card h3{font-size:1.15rem;margin-bottom:.3em}
+.card.pro{border-top:5px solid var(--gst)}.card.con{border-top:5px solid var(--warn)}.card.tip{border-top:5px solid var(--yel)}
+.card.pro,.card.con,.card.tip{border-radius:6px 6px 14px 14px}
+.card .bl li::before{background:currentColor;opacity:.55}
+.fig{display:block;width:100%;height:auto;max-height:min(58vh,460px);margin:auto}
+.pl{fill:var(--ink);font:600 15px Figtree,sans-serif}
+.lb{fill:var(--mut);font:600 13px Figtree,sans-serif}
+.mt{fill:var(--mut);font:500 12px Figtree,sans-serif}
+.tx{fill:var(--ink);font:600 12px Figtree,sans-serif;text-anchor:middle}
+.wt{fill:#fff;font:700 13px Figtree,sans-serif;text-anchor:middle}
+.note{font-size:.9rem;color:var(--mut)}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--mut);margin-top:10px}
+.leg i{display:inline-block;width:.8em;height:.8em;border-radius:50%;margin-right:.35em;vertical-align:-.05em}
+
+/* title */
+.slide.active.title{display:flex;align-items:center;overflow:hidden}
+.fls{position:absolute;inset:0;pointer-events:none;max-width:none!important;margin:0!important}
+.fl{position:absolute;border-radius:50%;opacity:.2;animation:drift 9s ease-in-out infinite alternate}
+.tt{position:relative;z-index:1}
+.tt h1{font-size:clamp(2.3rem,9vw,5.4rem);font-weight:800;line-height:1;letter-spacing:-.02em}
+.tt .sub{font-size:clamp(1.05rem,2.6vw,1.6rem);color:var(--mut);margin:.7em 0;max-width:34ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:1em 0}
+.chip{border-radius:99px;padding:.3em .95em;font-weight:700;font-size:.95rem;color:var(--on);background:var(--c)}
+.slide.active .chip{animation:popin .6s both;animation-delay:calc(var(--n)*.18s + .3s)}
+.by{font-weight:600}.hint{color:var(--mut);font-size:.9rem}
+
+/* roadmap */
+.road{display:grid;gap:10px;margin-top:10px;padding:0;list-style:none}
+.road li{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:10px;padding:10px 14px;font-size:clamp(1rem,2.1vw,1.2rem)}
+.road small{display:block;color:var(--mut);font-size:.82rem}
+.slide.active .road li{animation:pop .5s both;animation-delay:calc(var(--n)*.25s + .1s)}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;list-style:none;padding:0;margin:12px 0;counter-reset:s}
+.flow li{counter-increment:s;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.98rem;animation:glow 14s infinite;animation-delay:calc(var(--n)*2s)}
+.flow li::before{content:counter(s);display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--teal);color:var(--on);font-weight:700;font-size:.85rem;margin-right:.5em}
+.flow .em{display:block;font-size:1.7rem;margin-bottom:.15em}
+
+/* cassette */
+.cas{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.cb{padding:.45em .8em;border-radius:8px;border:2px solid var(--bc);background:color-mix(in srgb,var(--bc) 16%,var(--card));font-weight:600;font-size:.95rem;animation:lit 9s infinite;animation-delay:calc(var(--n)*1s)}
+
+/* bars */
+.bars{display:grid;gap:14px;margin:12px 0}
+.barrow{display:grid;grid-template-columns:5.2rem 1fr;gap:4px 10px;align-items:center}
+.barrow b{font-size:1rem}
+.track{height:22px;background:color-mix(in srgb,var(--line) 70%,transparent);border-radius:6px;overflow:hidden}
+.track i{display:block;height:100%;width:calc(var(--w)*1%);background:var(--c);border-radius:6px}
+.slide.active .track i{animation:grow 1.3s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--n)*.3s)}
+.barrow em{grid-column:2;font-style:normal;font-size:.9rem;color:var(--mut)}
+
+/* seq */
+.seq{font:600 clamp(.95rem,2.6vw,1.35rem)/1.5 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.seq u{text-decoration:none;color:var(--on);background:var(--his);border-radius:4px;padding:0 .08em;animation:pulse2 1.8s ease-in-out infinite;animation-delay:calc(var(--n)*.12s)}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:clamp(.82rem,1.6vw,.98rem)}
+th,td{padding:.55em .75em;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700}
+tr:last-child td{border-bottom:0}
+th.h1{border-top:5px solid var(--his)}th.h2{border-top:5px solid var(--gst)}th.h3{border-top:5px solid var(--mbp)}th.h4{border-top:5px solid var(--int)}
+td:first-child{font-weight:700;color:var(--mut)}
+code.k{font:600 .95em ui-monospace,Menlo,Consolas,monospace;background:color-mix(in srgb,var(--c) 14%,transparent);padding:.05em .35em;border-radius:5px}
+
+/* steps widget */
+.stp{display:grid;grid-template-columns:1fr;gap:14px;align-items:center}
+@media(min-width:820px){.stp{grid-template-columns:1.15fr .85fr}}
+.stp-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.stp-btns button{font:600 .92rem Figtree,system-ui,sans-serif;border:1.5px solid var(--c);background:transparent;color:var(--ink);border-radius:99px;padding:.4em .9em;cursor:pointer}
+.stp-btns button.on{background:var(--c);color:var(--on)}
+.stp-btns button:focus-visible,.bar button:focus-visible,summary:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.stp-cap{margin:0;font-size:clamp(1rem,2vw,1.18rem);line-height:1.4;min-height:5.6em}
+
+/* svg parts: stage visibility */
+.s1,.s2,.s3{visibility:hidden}
+.stp[data-stage="1"] .s1,.stp[data-stage="2"] .s2,.stp[data-stage="3"] .s3{visibility:visible}
+
+/* column */
+.col .tubebg{fill:var(--card);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+.col .bead{fill:var(--c);fill-opacity:.22;stroke:var(--c);stroke-width:1.5}
+.col .tg{fill:var(--c)}.col .pr{fill:var(--prot)}.col .jk{fill:var(--junk)}
+.col .tgt,.col .junk{opacity:0}
+.col .stay{fill:var(--c);opacity:0}
+.col .cup{fill:none;stroke:var(--ink);stroke-width:2}
+.col .liq{fill:var(--junk);opacity:.7;transition:fill .5s}
+.stp[data-stage="3"] .col .liq{fill:var(--prot)}
+.col .drop{fill:var(--junk);animation:drip 1s var(--d) infinite}
+.stp[data-stage="2"] .col .drop{fill:var(--teal)}
+.stp[data-stage="3"] .col .drop{fill:var(--c)}
+.stp[data-stage="1"] .col .junk{animation:fallOut 3.4s var(--d) infinite}
+.stp[data-stage="2"] .col .junk.weak{animation:fallOut 3.4s var(--d) infinite}
+.stp[data-stage="1"] .col .tgt{animation:bind 3.4s var(--d) infinite}
+.stp[data-stage="2"] .col .tgt{opacity:1;transform:translateY(var(--rest))}
+.stp[data-stage="3"] .col .tgt{animation:elute 3.6s var(--d) infinite}
+.stp.cleave[data-stage="3"] .col .stay{opacity:1}
+.stp.cleave[data-stage="3"] .col .tgt .tg{display:none}
+
+/* T7 */
+.t7 .box{fill:none;stroke:var(--line);stroke-width:2.5}
+.t7 .gp{fill:var(--teal)}.t7 .gn{fill:var(--int)}.t7 .gy{fill:var(--prot)}.t7 .gt{fill:var(--reg)}
+.t7 .bt{fill:#fff;font:700 12px Figtree,sans-serif;text-anchor:middle}
+.t7 .lac{transition:transform 1.2s ease,opacity 1.2s ease}
+.t7 .lac polygon{fill:var(--warn)}
+.t7 .lac text{fill:#fff;font:700 10px Figtree,sans-serif;text-anchor:middle}
+.t7 .ip{fill:var(--yel);opacity:0;transition:opacity .8s}
+.stp:not([data-stage="1"]) .t7 .ip{opacity:1}
+.stp:not([data-stage="1"]) .t7 .lac{transform:translateY(-30px);opacity:.55}
+.t7 .rn{fill:var(--int);opacity:0}
+.stp[data-stage="3"] .t7 .rn{animation:rnap 3s var(--d) infinite}
+.t7 .mrna{fill:none;stroke:var(--int);stroke-width:3;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;opacity:0}
+.stp[data-stage="3"] .t7 .mrna{opacity:1;animation:draw 2.6s linear infinite}
+.t7 .pdot{fill:var(--prot);opacity:0}
+.stp[data-stage="3"] .t7 .pdot{animation:popup 1.8s var(--d) infinite}
+
+/* His close-up */
+.his .beadbig{fill:var(--junk);fill-opacity:.2;stroke:var(--junk);stroke-width:2}
+.his .nta{fill:var(--card);stroke:var(--ink);stroke-width:2}
+.his .ni{fill:var(--ni)}
+.his .pr{fill:var(--prot)}
+.his .ringh{fill:var(--his)}.his .ringi{fill:var(--yel)}
+.his .chain{transition:transform 1.1s cubic-bezier(.5,0,.2,1)}
+.stp[data-stage="1"] .his .chain,.stp[data-stage="3"] .his .chain{transform:translate(40px,-85px)}
+.his .imid{opacity:0;transform:translateX(60px);transition:opacity .9s,transform .9s}
+.stp[data-stage="3"] .his .imid{opacity:1;transform:none}
+.his .bond{stroke:var(--ni);stroke-width:2.5;stroke-dasharray:3 3;opacity:0;transition:opacity .6s}
+.stp:not([data-stage="1"]) .his .bond{opacity:1}
+.his .site0{fill:none;stroke:var(--ni);stroke-dasharray:3 3}
+
+/* protease + splicing: groups rotate about their own centre */
+.prt g,.spl g{transform-box:fill-box;transform-origin:center}
+.prt .tagb{fill:var(--c)}.prt .site{fill:var(--yel)}.prt .pb{fill:var(--prot)}
+.prt .g1,.prt .g2{transition:transform 1s ease}
+.stp[data-stage="3"] .prt .g1{transform:translate(-34px,-16px) rotate(-5deg)}
+.stp[data-stage="3"] .prt .g2{transform:translate(34px,10px) rotate(3deg)}
+.prt .sc{opacity:0;transform:translateY(-30px);transition:transform .8s,opacity .8s;font-size:34px;fill:var(--ink)}
+.stp[data-stage="2"] .prt .sc{opacity:1;transform:translateY(0)}
+.prt .cut{stroke:var(--warn);stroke-width:2.5;stroke-dasharray:4 3;opacity:0;transition:opacity .5s}
+.stp[data-stage="2"] .prt .cut{opacity:1}
+.spl .nb{fill:var(--prot)}.spl .cb2{fill:var(--prot);fill-opacity:.7}.spl .ib{fill:var(--int)}
+.spl .itn{transition:transform 1.1s ease,opacity 1.1s ease}
+.stp[data-stage="2"] .spl .itn{transform:translateY(-62px)}
+.stp[data-stage="3"] .spl .itn{transform:translate(18px,-92px) rotate(8deg);opacity:.5}
+.spl .cex{transition:transform 1.1s .25s ease}
+.stp[data-stage="3"] .spl .cex{transform:translateX(-120px)}
+.spl .bondc{fill:var(--yel);stroke:var(--ink)}
+
+/* maps */
+.plas .ring0{fill:none;stroke:var(--line);stroke-width:24;opacity:.6}
+.plas .arc{fill:none;stroke-width:24;stroke-dasharray:100;stroke-dashoffset:100}
+.slide.active .plas .arc{animation:drawArc .9s ease-out both;animation-delay:calc(var(--i)*.25s)}
+.slide.active .plas .arc.gene{animation:drawArc .9s ease-out both,pulse 2.2s ease-in-out 2.6s infinite;animation-delay:calc(var(--i)*.25s),2.6s}
+.plas .lead{stroke:var(--mut);stroke-width:1}
+.plas .pl{font-size:15px}
+.plas .nm{font:800 18px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
+.plas .sb{font:500 12px Figtree,sans-serif;fill:var(--mut);text-anchor:middle}
+.slide.active .plas .pl,.slide.active .plas .lead{animation:pop .5s both;animation-delay:calc(var(--i)*.25s + .5s)}
+
+/* misc figs */
+.dot{fill:var(--junk);opacity:.55;animation:bob 4s ease-in-out infinite alternate}
+.me{fill:var(--prot)}.ping{fill:none;stroke:var(--prot);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:ping 1.8s ease-out infinite}
+.resin{fill:var(--c);fill-opacity:.18;stroke:var(--c);stroke-width:2}
+.recep{fill:none;stroke:var(--c);stroke-width:5;stroke-linecap:round}
+.trav{animation:travel 6s ease-in-out infinite}
+.tagr{fill:var(--c)}
+.gs{fill:var(--gst)}.pocket{fill:var(--bg);stroke:var(--gst);stroke-width:2}
+.gsh rect{fill:var(--yel)}.gsh text{fill:#1b2a30;font:700 9px Figtree,sans-serif;text-anchor:middle}
+.gsh{animation:gshIn 3s ease-in-out infinite alternate}
+.mb{fill:var(--mbp)}.bl2{fill:var(--prot)}
+.cl{animation:clump 2.4s ease-in-out infinite alternate}
+.bobs{animation:bob 2s ease-in-out infinite alternate}
+
+/* details/quiz */
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}
+summary{cursor:pointer;font-weight:600}
+details p{margin:.5em 0 0;color:var(--mut)}
+.arrowrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 0}
+.arrowrow span{background:var(--card);border:1.5px solid var(--c);border-radius:99px;padding:.25em .8em;font-size:.92rem}
+.arrowrow s{text-decoration:none;color:var(--mut)}
+.mn{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.mn div{border-radius:12px;padding:12px;background:color-mix(in srgb,var(--c) 14%,var(--card));border:2px solid var(--c)}
+.mn b{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:1.6rem}
+.dec{display:grid;gap:10px}
+.dec div{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:10px;padding:10px 14px}
+.dec span{flex:1 1 220px}.dec strong{color:var(--ink)}
+.slide.active .dec div{animation:pop .5s both;animation-delay:calc(var(--n)*.25s + .1s)}
+
+/* bar */
+.bar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);background:var(--card);position:relative}
+.prog{position:absolute;left:0;top:-3px;height:3px;width:100%}
+.prog i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+.bar button{font:700 1.1rem Figtree,system-ui,sans-serif;min-width:44px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+#cnt{flex:1;text-align:center;font-weight:600;color:var(--mut);font-size:.9rem}
+#notes{font-size:.9rem;padding:0 12px}
+#note{display:none;position:absolute;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:12px 18px;font-size:1rem;z-index:5;max-height:35%;overflow:auto}
+body.notes #note{display:block}
+
+@keyframes sfade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes popin{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes drawArc{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes pulse{0%,100%{stroke-width:24}50%{stroke-width:31}}
+@keyframes pulse2{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes grow{from{width:0}}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(16px);opacity:0}}
+@keyframes fallOut{0%{transform:translateY(0);opacity:0}10%{opacity:1}85%{opacity:1}100%{transform:translateY(262px);opacity:0}}
+@keyframes bind{0%{transform:translateY(0);opacity:0}12%{opacity:1}70%,100%{transform:translateY(var(--rest));opacity:1}}
+@keyframes elute{0%,12%{transform:translateY(var(--rest));opacity:1}78%{transform:translateY(262px);opacity:1}100%{transform:translateY(262px);opacity:0}}
+@keyframes rnap{0%{transform:translate(0,0);opacity:0}12%{opacity:1}85%{transform:translate(var(--dx),130px);opacity:1}100%{transform:translate(var(--dx),130px);opacity:0}}
+@keyframes draw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes popup{0%{transform:translateY(12px);opacity:0}40%,80%{transform:none;opacity:1}100%{opacity:0}}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(30px,-40px)}}
+@keyframes bob{to{transform:translate(var(--dx,6px),var(--dy,-6px))}}
+@keyframes ping{0%{transform:scale(.6);opacity:.9}100%{transform:scale(3.2);opacity:0}}
+@keyframes lit{0%{background:color-mix(in srgb,var(--bc) 60%,var(--card))}11%{background:color-mix(in srgb,var(--bc) 60%,var(--card))}12%,100%{background:color-mix(in srgb,var(--bc) 16%,var(--card))}}
+@keyframes glow{0%{border-color:var(--teal);transform:scale(1.04);background:color-mix(in srgb,var(--teal) 14%,var(--card))}13%{border-color:var(--teal);transform:scale(1.04);background:color-mix(in srgb,var(--teal) 14%,var(--card))}15%,100%{border-color:var(--line);transform:none;background:var(--card)}}
+@keyframes travel{0%{transform:translateX(0);opacity:0}10%{opacity:1}60%,88%{transform:translateX(308px);opacity:1}100%{transform:translateX(308px);opacity:0}}
+@keyframes gshIn{0%{transform:translateY(-34px);opacity:0}45%,100%{transform:none;opacity:1}}
+@keyframes clump{to{transform:translate(var(--tx),var(--ty))}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .plas .arc{stroke-dashoffset:0}
+  .stp[data-stage="1"] .col .tgt,.stp[data-stage="3"] .col .tgt{opacity:1}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ring" viewBox="-10 -10 20 20"><polygon points="0,-8 7.6,-2.5 4.7,6.5 -4.7,6.5 -7.6,-2.5"/></symbol></defs></svg>
+<main id="deck"><div id="note"></div></main>
+<nav class="bar" aria-label="Slide navigation">
+  <div class="prog"><i id="prog"></i></div>
+  <button id="prev" aria-label="Previous slide">&#8249;</button>
+  <span id="cnt"></span>
+  <button id="notes" aria-label="Toggle speaker notes">Notes</button>
+  <button id="next" aria-label="Next slide">&#8250;</button>
+</nav>
+
+<script>
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+const slides=[];
+const add=(cls,html,note)=>slides.push({cls,html,note});
+const bl=(a,sm)=>`<ul class="bl${sm?' sm':''}">${a.map((t,i)=>`<li class="b" style="--n:${i}">${t}</li>`).join('')}</ul>`;
+const pill=(t,c)=>`<span class="pill" style="--c:var(--${c})">${t}</span>`;
+const hd=(t,p,c)=>`<div class="hd"><h2>${t}</h2>${p?pill(p,c):''}</div>`;
+const two=(a,b,cls='')=>`<div class="two ${cls}"><div>${a}</div><div>${b}</div></div>`;
+const leg=(c)=>`<div class="leg"><span><i style="background:var(--prot)"></i>Your protein</span><span><i style="background:var(--${c})"></i>Tag</span><span><i style="background:var(--junk)"></i>Host proteins</span></div>`;
+
+function stp(svg,steps,extra='',legend=''){
+  return `<div class="stp ${extra}" data-stage="1" data-steps="${esc(JSON.stringify(steps))}"><div class="stp-fig">${svg}</div><div class="stp-side"><div class="stp-btns"></div><p class="stp-cap"></p>${legend}</div></div>`;
+}
+
+/* ---------- plasmid map generator ---------- */
+function plasmid(m){
+  const cx=200,cy=170,r=90;
+  const P=(d,rad)=>{const t=d*Math.PI/180;return [cx+rad*Math.sin(t),cy-rad*Math.cos(t)]};
+  let s=`<svg viewBox="-70 -10 540 360" class="fig plas" role="img" aria-label="Schematic map of ${m.name}"><circle class="ring0" cx="200" cy="170" r="90"/>`;
+  m.seg.forEach(([a,b,c,l,g],i)=>{
+    const [x1,y1]=P(a,r),[x2,y2]=P(b,r);
+    s+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 ${(b-a)>180?1:0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" class="arc${g?' gene':''}" style="stroke:var(--${c});--i:${i}" pathLength="100"/>`;
+    const mid=(a+b)/2,sn=Math.sin(mid*Math.PI/180),cs=Math.cos(mid*Math.PI/180);
+    const [lx,ly]=P(mid,r+32),[tx,ty]=P(mid,r+14),[ux,uy]=P(mid,r+26);
+    const an=sn>.25?'start':sn<-.25?'end':'middle';
+    s+=`<line class="lead" x1="${tx.toFixed(1)}" y1="${ty.toFixed(1)}" x2="${ux.toFixed(1)}" y2="${uy.toFixed(1)}" style="--i:${i}"/><text class="pl" text-anchor="${an}" x="${(lx+(an==='start'?3:an==='end'?-3:0)).toFixed(1)}" y="${(ly+(cs>.3?0:cs<-.3?11:5)).toFixed(1)}" style="--i:${i}">${l}</text>`;
+  });
+  s+=`<text class="nm" x="200" y="168">${m.name}</text><text class="sb" x="200" y="188">${m.sub||'schematic, not to scale'}</text></svg>`;
+  return s;
+}
+const maps={
+  gen:{name:'Expression plasmid',seg:[[0,26,'teal','Promoter + RBS'],[28,48,'his','Tag + cut site'],[50,80,'prot','Your gene (MCS)',1],[82,100,'reg','Terminator'],[130,210,'warn','Antibiotic marker'],[225,285,'junk','Origin (ori)'],[296,356,'mbp','Repressor (lacI)']]},
+  pet:{name:'pET-28a(+)',sub:'about 5.4 kb · schematic',seg:[[0,28,'teal','T7lac promoter'],[30,52,'his','N-His + thrombin'],[54,86,'prot','MCS: your gene',1],[88,104,'his','C-His'],[106,126,'reg','T7 terminator'],[140,220,'warn','KanR'],[230,290,'junk','ori'],[296,356,'mbp','lacI']]},
+  gex:{name:'pGEX',sub:'GST fusion · schematic',seg:[[0,22,'teal','tac promoter'],[24,66,'gst','GST'],[68,80,'yel','Protease site'],[82,104,'prot','MCS: your gene',1],[130,215,'warn','AmpR'],[225,290,'junk','ori'],[298,356,'reg','lacIq']]},
+  mal:{name:'pMAL',sub:'MBP fusion · schematic',seg:[[0,22,'teal','tac promoter'],[24,80,'mbp','malE (MBP)'],[82,92,'yel','Factor Xa site'],[94,114,'prot','MCS: your gene',1],[140,220,'warn','AmpR'],[230,290,'junk','ori'],[298,356,'reg','lacI']]},
+  tyb:{name:'pTYB',sub:'IMPACT system · schematic',seg:[[0,22,'teal','T7 promoter'],[24,48,'prot','MCS: your gene',1],[50,92,'int','Intein'],[94,110,'ni','CBD (chitin-binding)'],[140,220,'warn','AmpR'],[230,290,'junk','ori'],[298,356,'reg','lacI']]}
+};
+
+/* ---------- column widget ---------- */
+function colSvg(elab){
+  let beads='';
+  for(let r=0;r<4;r++){const y=252-r*15;for(let k=0;k<5;k++){const x=97+k*16+(r%2?8:0);if(x<=167)beads+=`<circle class="bead" cx="${x}" cy="${y}" r="8"/>`}}
+  const T=[[102,150],[122,175],[134,125],[146,150],[162,178]];
+  const tg=T.map(([x,rest],i)=>`<g class="tgt" style="--rest:${rest}px;--d:${i*.25}s"><rect class="tg" x="${x-5}" y="57" width="10" height="6" rx="2"/><circle class="pr" cx="${x}" cy="50" r="9"/></g>`).join('');
+  const st=T.map(([x,rest])=>`<rect class="stay" x="${x-5}" y="${57+rest}" width="10" height="6" rx="2"/>`).join('');
+  const J=[[95,0,0],[112,.5,1],[130,.9,0],[146,.3,1],[164,.7,0]];
+  const jk=J.map(([x,d,w],i)=>i%2?`<rect class="jk junk${w?' weak':''}" x="${x-5}" y="45" width="10" height="10" rx="2" style="--d:${d}s"/>`:`<circle class="jk junk${w?' weak':''}" cx="${x}" cy="50" r="5.5" style="--d:${d}s"/>`).join('');
+  const dr=[105,130,155].map((x,i)=>`<circle class="drop" cx="${x}" cy="28" r="3.5" style="--d:${i*.3}s"/>`).join('');
+  return `<svg viewBox="0 0 260 335" class="fig col" role="img" aria-label="Animated affinity column"><path class="tubebg" d="M85 36V260L122 288H138L175 260V36"/>${beads}${jk}${tg}${st}<path class="cup" d="M104 292H156L151 326H109Z"/><rect class="liq" x="111" y="310" width="38" height="14" rx="2"/>${dr}<text class="pl s1" x="130" y="16" text-anchor="middle">Crude lysate</text><text class="pl s2" x="130" y="16" text-anchor="middle">Wash buffer</text><text class="pl s3" x="130" y="16" text-anchor="middle">${elab}</text></svg>`;
+}
+
+/* ---------- other figures ---------- */
+function hay(){
+  let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  let s='<svg viewBox="0 0 520 260" class="fig" role="img" aria-label="One target protein hidden among many host proteins">';
+  for(let i=0;i<72;i++){const x=15+r()*490,y=15+r()*230,rad=4+r()*6;
+    s+=`<circle class="dot" cx="${x|0}" cy="${y|0}" r="${rad.toFixed(1)}" style="--dx:${(r()*24-12)|0}px;--dy:${(r()*24-12)|0}px;animation-duration:${(3+r()*4).toFixed(1)}s;animation-delay:-${(r()*5).toFixed(1)}s"/>`}
+  s+=`<circle class="ping" cx="300" cy="120" r="12"/><circle class="me" cx="300" cy="120" r="9"/><text class="pl" x="318" y="104">your protein</text></svg>`;
+  return s;
+}
+function floaters(){
+  const cs=['his','gst','mbp','int','prot','teal'];let seed=11;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  let s='<div class="fls">';
+  for(let i=0;i<14;i++){const z=24+r()*60;s+=`<div class="fl" style="left:${(r()*95)|0}%;top:${(r()*90)|0}%;width:${z|0}px;height:${z|0}px;background:var(--${cs[i%6]});animation-duration:${(7+r()*8).toFixed(1)}s;animation-delay:-${(r()*8).toFixed(1)}s"></div>`}
+  return s+'</div>';
+}
+const hookSvg=(()=>{
+  const J=[[40,40],[90,205],[150,70],[200,180],[250,45],[290,215],[330,90],[360,170],[120,130],[220,115],[385,50],[60,160]];
+  const d=J.map(([x,y],i)=>`<circle class="dot" cx="${x}" cy="${y}" r="${6+(i%4)*2}" style="--dx:${(i%3-1)*8}px;--dy:${(i%2?-9:9)}px;animation-delay:-${i*.4}s"/>`).join('');
+  return `<svg viewBox="0 0 520 250" class="fig" role="img" aria-label="A tagged protein is caught by the resin while others drift past">${d}<rect class="resin" x="430" y="30" width="70" height="190" rx="12"/><path class="recep" d="M430 108H414A14 14 0 0 0 414 142H430"/><text class="tx" x="465" y="242">Resin</text><g class="trav"><g transform="translate(62,125)"><line x1="20" y1="0" x2="42" y2="0" stroke="var(--c)" stroke-width="3"/><rect class="tagr" x="40" y="-5" width="22" height="10" rx="3"/><circle class="me" r="22"/></g></g></svg>`;
+})();
+const gstSvg=`<svg viewBox="0 0 420 270" class="fig" role="img" aria-label="GST dimer binding glutathione"><circle class="gs" cx="140" cy="92" r="52"/><circle class="gs" cx="240" cy="92" r="52"/><circle class="pocket" cx="140" cy="62" r="12"/><circle class="pocket" cx="240" cy="62" r="12"/><text class="wt" x="140" y="108">GST</text><text class="wt" x="240" y="108">GST</text><line x1="140" y1="144" x2="140" y2="178" stroke="var(--gst)" stroke-width="3"/><line x1="240" y1="144" x2="240" y2="178" stroke="var(--gst)" stroke-width="3"/><circle class="me" cx="140" cy="208" r="30"/><circle class="me" cx="240" cy="208" r="30"/><text class="wt" x="140" y="212">protein</text><text class="wt" x="240" y="212">protein</text><g class="gsh" transform="translate(140,62)"><rect x="-15" y="-7" width="30" height="14" rx="7"/><text y="3">GSH</text></g><g class="gsh" transform="translate(240,62)"><rect x="-15" y="-7" width="30" height="14" rx="7"/><text y="3">GSH</text></g><text class="lb" x="190" y="262" text-anchor="middle">GST naturally dimerises (about 52 kDa)</text></svg>`;
+const mbpSvg=`<svg viewBox="0 0 520 240" class="fig" role="img" aria-label="Without MBP proteins clump together, with MBP they stay apart"><g><circle class="bl2 cl" cx="45" cy="90" r="22" style="--tx:80px;--ty:20px"/><circle class="bl2 cl" cx="125" cy="130" r="22" style="--tx:0px;--ty:-18px"/><circle class="bl2 cl" cx="205" cy="90" r="22" style="--tx:-80px;--ty:20px"/><text class="pl" x="125" y="200" text-anchor="middle">Without MBP: clumps</text></g><g><circle class="mb" cx="320" cy="100" r="34"/><circle class="mb" cx="400" cy="100" r="34" opacity=".9"/><circle class="mb" cx="480" cy="100" r="34" opacity=".8"/><circle class="bl2 bobs" cx="320" cy="150" r="15"/><circle class="bl2 bobs" cx="400" cy="150" r="15" style="animation-delay:-.6s"/><circle class="bl2 bobs" cx="480" cy="150" r="15" style="animation-delay:-1.2s"/><text class="wt" x="320" y="104">MBP</text><text class="wt" x="400" y="104">MBP</text><text class="wt" x="480" y="104">MBP</text><text class="pl" x="400" y="200" text-anchor="middle">With MBP: soluble</text></g></svg>`;
+const t7Svg=`<svg viewBox="0 0 360 380" class="fig t7" role="img" aria-label="How IPTG switches on T7 expression">
+<rect class="box" x="8" y="8" width="344" height="132" rx="12"/><text class="lb" x="18" y="130">E. coli BL21(DE3) chromosome</text>
+<rect class="gp" x="22" y="62" width="80" height="28" rx="5"/><text class="bt" x="62" y="81">lacUV5</text>
+<rect class="gn" x="106" y="62" width="224" height="28" rx="5"/><text class="bt" x="218" y="81">T7 RNA polymerase gene</text>
+<g transform="translate(62,46)"><g class="lac"><polygon points="0,-15 13,-7.5 13,7.5 0,15 -13,7.5 -13,-7.5"/><text y="4">LacI</text><circle class="ip" cx="15" cy="-12" r="4.5"/><circle class="ip" cx="-15" cy="-12" r="4.5"/></g></g>
+<rect class="box" x="8" y="208" width="344" height="166" rx="12"/><text class="lb" x="18" y="364">pET plasmid</text>
+<rect class="gp" x="22" y="262" width="80" height="28" rx="5"/><text class="bt" x="62" y="281">T7lac</text>
+<rect class="gy" x="106" y="262" width="150" height="28" rx="5"/><text class="bt" x="181" y="281">Your gene</text>
+<rect class="gt" x="260" y="262" width="70" height="28" rx="5"/><text class="bt" x="295" y="281">T7 term.</text>
+<g transform="translate(62,246)"><g class="lac"><polygon points="0,-15 13,-7.5 13,7.5 0,15 -13,7.5 -13,-7.5"/><text y="4">LacI</text><circle class="ip" cx="15" cy="-12" r="4.5"/><circle class="ip" cx="-15" cy="-12" r="4.5"/></g></g>
+<circle class="rn" cx="160" cy="108" r="9" style="--dx:-98px;--d:0s"/><circle class="rn" cx="218" cy="108" r="9" style="--dx:-156px;--d:1s"/><circle class="rn" cx="276" cy="108" r="9" style="--dx:-214px;--d:2s"/>
+<path class="mrna" pathLength="100" d="M106 308q8-10 16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0"/>
+<circle class="pdot" cx="270" cy="326" r="7" style="--d:0s"/><circle class="pdot" cx="292" cy="326" r="7" style="--d:.4s"/><circle class="pdot" cx="314" cy="326" r="7" style="--d:.8s"/>
+<text class="pl s3" x="292" y="352" text-anchor="middle">Lots of protein</text></svg>`;
+const hisSvg=`<svg viewBox="0 0 460 300" class="fig his" role="img" aria-label="His-tag binding to nickel and competition by imidazole">
+<circle class="beadbig" cx="-10" cy="150" r="125"/><text class="mt" x="14" y="154">Resin bead</text>
+<line x1="115" y1="150" x2="150" y2="150" stroke="var(--ink)" stroke-width="3"/>
+<rect class="nta" x="150" y="132" width="34" height="36" rx="6"/><text class="tx" x="167" y="155">NTA</text>
+<line x1="184" y1="150" x2="197" y2="150" stroke="var(--ink)" stroke-width="3"/>
+<circle class="ni" cx="212" cy="150" r="15"/><text class="wt" x="212" y="154" style="font-size:11px">Ni²⁺</text>
+<line class="bond" x1="224" y1="144" x2="234" y2="139"/><line class="bond" x1="224" y1="156" x2="234" y2="161"/>
+<g class="chain"><path d="M240 138L240 162L262 138L262 162L284 138L284 162L326 150" fill="none" stroke="var(--his)" stroke-width="2"/>
+<use href="#ring" class="ringh" x="231" y="129" width="18" height="18"/><use href="#ring" class="ringh" x="231" y="153" width="18" height="18"/>
+<use href="#ring" class="ringh" x="253" y="129" width="18" height="18"/><use href="#ring" class="ringh" x="253" y="153" width="18" height="18"/>
+<use href="#ring" class="ringh" x="275" y="129" width="18" height="18"/><use href="#ring" class="ringh" x="275" y="153" width="18" height="18"/>
+<circle class="pr" cx="362" cy="150" r="36"/><text class="wt" x="362" y="154">Your protein</text><text class="tx" x="262" y="196">6×His tag</text></g>
+<g class="imid"><use href="#ring" class="ringi" x="231" y="129" width="18" height="18"/><use href="#ring" class="ringi" x="231" y="153" width="18" height="18"/>
+<use href="#ring" class="ringi" x="262" y="200" width="18" height="18"/><use href="#ring" class="ringi" x="300" y="226" width="18" height="18"/><use href="#ring" class="ringi" x="250" y="236" width="18" height="18"/><use href="#ring" class="ringi" x="340" y="190" width="18" height="18"/>
+<text class="tx" x="340" y="262">free imidazole</text></g></svg>`;
+const prtSvg=`<svg viewBox="0 0 470 230" class="fig prt" role="img" aria-label="Protease cuts the tag off"><g class="g1"><rect class="tagb" x="30" y="120" width="120" height="48" rx="8"/><rect class="site" x="150" y="120" width="25" height="48"/><text class="wt" x="90" y="149">Tag</text></g><g class="g2"><rect class="site" x="175" y="120" width="25" height="48"/><rect class="pb" x="200" y="120" width="240" height="48" rx="8"/><text class="wt" x="320" y="149">Your protein</text></g><line class="cut" x1="175" y1="108" x2="175" y2="180"/><text class="sc" x="175" y="104" text-anchor="middle">✂</text><text class="mt" x="162" y="200" text-anchor="middle" style="font-size:12px">cut site</text><text class="pl s3" x="70" y="215" text-anchor="middle">Free tag</text><text class="pl s3" x="350" y="225" text-anchor="middle">Pure protein</text></svg>`;
+const splSvg=`<svg viewBox="0 0 440 240" class="fig spl" role="img" aria-label="Protein splicing by an intein"><g class="nex"><rect class="nb" x="20" y="130" width="120" height="44" rx="8"/><text class="wt" x="80" y="157">N-extein</text></g><g class="cex"><rect class="cb2" x="260" y="130" width="120" height="44" rx="8"/><text class="wt" x="320" y="157">C-extein</text></g><g class="itn"><rect class="ib" x="140" y="130" width="120" height="44" rx="8"/><text class="wt" x="200" y="157">Intein</text></g><circle class="bondc s3" cx="140" cy="152" r="6"/><text class="pl s3" x="140" y="118" text-anchor="middle">new peptide bond</text><text class="pl s1" x="200" y="205" text-anchor="middle">One long precursor chain</text><text class="pl s2" x="200" y="205" text-anchor="middle">Intein loops out</text><text class="pl s3" x="140" y="205" text-anchor="middle">Exteins joined, intein released</text></svg>`;
+const T=(rows)=>rows.map((r,i)=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+
+/* ====================== SLIDES ====================== */
+
+add('title',`${floaters()}<div class="tt"><h1>Protein Purification</h1><p class="sub">Expression vectors and fusion tags: pET, pGEX (GST), pMAL (MBP), His-tag and intein systems</p>
+<div class="chips"><span class="chip" style="--c:var(--his);--n:0">His-tag</span><span class="chip" style="--c:var(--gst);--n:1">GST</span><span class="chip" style="--c:var(--mbp);--n:2">MBP</span><span class="chip" style="--c:var(--int);--n:3">Intein</span></div>
+<p class="by">Your name · Course · Date</p><p class="hint">Tap › or swipe to begin</p></div>`,
+'Open with the hook: every protein lab faces the same problem, finding one protein in a sea of thousands. Today is about the handles (tags) that solve it.');
+
+add('',`${hd('What we will cover','Roadmap','teal')}
+<p class="lead">One problem, five tools.</p>
+<ul class="road">
+<li style="--c:var(--teal);--n:0"><div>Vectors and pET<small>how the cell is told to make your protein</small></div></li>
+<li style="--c:var(--his);--n:1"><div>His-tag<small>the tiny, popular nickel hook</small></div></li>
+<li style="--c:var(--gst);--n:2"><div>GST and pGEX<small>glue for glutathione beads</small></div></li>
+<li style="--c:var(--mbp);--n:3"><div>MBP and pMAL<small>the big helper that keeps proteins soluble</small></div></li>
+<li style="--c:var(--int);--n:4"><div>Intein and IMPACT<small>a tag that cuts itself off</small></div></li>
+</ul>`,'Give them the map first. Mention that the last section is the most surprising one.');
+
+add('',`${hd('Finding one protein in thousands','Why purify?','teal')}
+${two(hay(),bl(['A single <b>E. coli</b> cell makes thousands of different proteins','Your recombinant protein is mixed in with all of them','Structure, enzyme assays, antibodies and drugs all need <b>pure</b> protein','The trick: give your protein a <b>handle</b> that no host protein has'].concat([])),'l')}`,
+'Let the animation play. The glowing dot is the target. Ask the audience: how would you pull out just that one?');
+
+add('',`${hd('From gene to pure protein','Big picture','teal')}
+<ol class="flow">
+<li style="--n:0"><span class="em">🧬</span><b>Clone</b> your gene into the vector</li>
+<li style="--n:1"><span class="em">🦠</span><b>Transform</b> the plasmid into E. coli</li>
+<li style="--n:2"><span class="em">🌱</span><b>Grow</b> to mid-log (OD₆₀₀ about 0.5–0.8)</li>
+<li style="--n:3"><span class="em">⚡</span><b>Induce</b> with IPTG</li>
+<li style="--n:4"><span class="em">💥</span><b>Lyse</b> cells, spin out debris</li>
+<li style="--n:5"><span class="em">🎣</span><b>Capture</b> on an affinity resin</li>
+<li style="--n:6"><span class="em">✂️</span><b>Elute</b>, remove tag, polish</li>
+</ol><p class="note">The vector and the tag decide steps 1, 4 and 6. That is today's story.</p>`,
+'Watch the highlight walk through the seven steps. Point out that vector and tag choice shape the whole pipeline.');
+
+add('',`${hd('Anatomy of an expression vector','Vectors','teal')}
+${two(plasmid(maps.gen),bl(['<b>Promoter</b>: the start switch for transcription','<b>RBS</b>: landing pad for the ribosome','<b>Tag + cut site</b>: the handle, plus a place to remove it','<b>MCS</b>: the slot where your gene goes','<b>Terminator</b>: the stop sign','<b>ori</b>: how the plasmid copies itself','<b>Marker</b>: antibiotic resistance keeps only plasmid carriers alive','<b>lacI</b>: repressor that keeps the gene OFF until IPTG'],1),'l')}`,
+'Walk clockwise around the map. Everything else in the talk is a variation on this circle.');
+
+add('',`${hd('How the cell reads the cassette','Vectors','teal')}
+<p class="lead">Watch the highlight move from left to right, just like the machinery does.</p>
+<div class="cas">${[['Promoter','teal'],['RBS','reg'],['ATG start','junk'],['Tag','his'],['Protease site','yel'],['Your gene','prot'],['Stop codon','warn'],['Terminator','reg']].map(([t,c],i)=>`<div class="cb" style="--bc:var(--${c});--n:${i}">${t}</div>`).join('')}</div>
+${two(`<div class="card"><h3>Tag at the N-terminus</h3>${bl(['Tag is made first','Often helps solubility and expression','Easy to cut off with a protease'],1)}</div>`,`<div class="card"><h3>Tag at the C-terminus</h3>${bl(['Keeps the native N-terminus','Only <b>full-length</b> protein carries the tag, so truncated pieces do not purify','Good when the N-terminus must stay free'],1)}</div>`)}`,
+'Key insight: a C-terminal tag acts as a quality filter, since a prematurely stopped protein never gets the tag.');
+
+add('',`${hd('What is a fusion tag?','Tags','teal')}
+${two(hookSvg,bl(['A short peptide or protein fused to <b>your</b> protein','Gives it a <b>specific grip</b> on a resin','Host proteins have no such grip, so they wash away','Can also raise <b>solubility</b> and expression','Can be removed later with a protease (or by itself, with inteins)']),'l')}`,
+'Fishing analogy: the tag is the hook ring, the resin is the hook. Everything else floats by.');
+
+add('',`${hd('The tag line-up','Tags','teal')}
+<p class="lead">Tag size compared (kDa). Typical target protein: about 30.</p>
+<div class="bars">
+<div class="barrow" style="--c:var(--his);--w:2;--n:0"><b>His</b><span class="track"><i></i></span><em>about 0.8 kDa · tiny, quick, cheap</em></div>
+<div class="barrow" style="--c:var(--gst);--w:47;--n:1"><b>GST</b><span class="track"><i></i></span><em>26 kDa · solubility + pull-downs</em></div>
+<div class="barrow" style="--c:var(--mbp);--w:77;--n:2"><b>MBP</b><span class="track"><i></i></span><em>42.5 kDa · strongest solubility boost</em></div>
+<div class="barrow" style="--c:var(--int);--w:100;--n:3"><b>Intein + CBD</b><span class="track"><i></i></span><em>about 28–55 kDa · the tag cuts itself off</em></div>
+</div>`,
+'Bigger is not always worse: large tags like MBP help folding, but they also cost you a cleanup step.');
+
+/* ---- pET ---- */
+add('t-pet',`${hd('pET: the T7 power vector','pET','teal')}
+${two(plasmid(maps.pet),bl(['pET = plasmid for <b>E</b>xpression by <b>T</b>7 (Studier lab)','Your gene sits behind the <b>T7 promoter</b>','Only <b>T7 RNA polymerase</b> reads it; E. coli\'s own polymerase ignores it','Choose N- or C-terminal His, signal peptides, other tags','pET-28a(+): kanamycin resistant, N-His + thrombin site'],1),'l')}`,
+'Stress why T7 is special: it is a viral polymerase that is very fast and very selective.');
+
+add('t-pet',`${hd('T7 switch: how IPTG turns it ON','pET','teal')}
+${stp(t7Svg,[{t:'1 Uninduced',d:'No IPTG. <b>LacI</b> sits on the operator at <b>both</b> places: the T7 polymerase gene and your gene are blocked.'},{t:'2 Add IPTG',d:'<b>IPTG</b> (yellow) grabs LacI. LacI changes shape and lets go of the DNA.'},{t:'3 Protein factory',d:'The cell makes <b>T7 RNA polymerase</b>. It rushes to the T7 promoter and transcribes your gene at high speed. Lots of protein!'}],'', '')}`,
+'This is the single most important diagram for pET. Step through it manually and ask: what if LacI leaks? (That leads to pLysS on the next slide.)');
+
+add('t-pet',`${hd('pET hosts and variants','pET','teal')}
+${two(bl(['<b>BL21(DE3)</b>: the workhorse; lacks Lon and OmpT proteases','<b>pLysS / pLysE</b>: add T7 lysozyme to cut leaky expression (toxic genes)','<b>Rosetta</b>: extra tRNAs for rare codons','<b>Origami</b>: helps disulfide bonds form in the cytoplasm','<b>C41 / C43(DE3)</b>: for toxic or membrane proteins','Tip: clone in DH5α (no T7 polymerase), express in BL21(DE3)'],1),
+`<div class="tw"><table><thead><tr><th>Vector</th><th>Resistance</th><th>You get</th></tr></thead><tbody>${T([['pET-28a(+)','Kan','N- or C-His, thrombin site'],['pET-22b(+)','Amp','pelB leader (periplasm) + C-His'],['pET-32a','Amp','Thioredoxin tag + His'],['pET-41a','Kan','GST tag + His']])}</tbody></table></div>`)}`,
+'Quick tip for the lab: if the protein kills the cell, try pLysS or lower the IPTG.');
+
+/* ---- His ---- */
+add('t-his',`${hd('His-tag: six histidines, one big idea','His-tag','his')}
+<div class="seq" aria-label="Example His-tag leader sequence">MGSS<u style="--n:0">H</u><u style="--n:1">H</u><u style="--n:2">H</u><u style="--n:3">H</u><u style="--n:4">H</u><u style="--n:5">H</u>SSGLVPRGSH…</div>
+<p class="note">Leader from pET-28a: the His-tag, then a thrombin site (LVPRGS).</p>
+${bl(['6 (or more) <b>consecutive histidines</b>, about 0.8 kDa','Placed at the <b>N- or C-terminus</b>','Binds <b>immobilized Ni²⁺ or Co²⁺</b> (IMAC)','Eluted with <b>imidazole</b>, which looks like the histidine side chain','Works under <b>native and denaturing</b> conditions (6–8 M urea)'])}`,
+'The sequence is real, taken from pET-28a. Point out the purple dancing letters.');
+
+add('t-his',`${hd('Close-up: nickel vs. imidazole','His-tag','his')}
+${stp(hisSvg,[{t:'1 Approach',d:'The resin carries <b>NTA</b> holding a <b>Ni²⁺</b> ion with two free coordination sites. The tagged protein floats close.'},{t:'2 Bind',d:'Two histidine <b>imidazole rings</b> latch onto Ni²⁺. The protein is held on the bead.'},{t:'3 Imidazole wins',d:'Flood with <b>free imidazole</b>. It competes for the nickel sites, kicks the His-tag off, and your protein is released.'}])}`,
+'The elegance: imidazole is just the histidine side chain, so it competes directly for the same spot.');
+
+add('t-his',`${hd('His-tag purification, step by step','His-tag','his')}
+${stp(colSvg('Imidazole 250–500 mM'),[{t:'1 Bind',d:'Lysate (with 10–20 mM imidazole to reduce sticky background) flows through Ni-NTA. Tagged protein sticks; the rest flows out.'},{t:'2 Wash',d:'20–40 mM imidazole removes weakly bound host proteins. Yours stays.'},{t:'3 Elute',d:'250–500 mM imidazole outcompetes the tag. Collect your purified protein.'}],'',leg('his'))}
+<p class="note">Typical buffer: 50 mM Tris or phosphate pH 8, 300 mM NaCl.</p>`,
+'Tap through the three stages. Explain that wash imidazole is the knob that trades purity for yield.');
+
+add('t-his',`${hd('His-tag: pros, cons, tips','His-tag','his')}
+${two(`<div class="card pro"><h3>Pros</h3>${bl(['Tiny: rarely disturbs folding','Cheap, reusable resin','Works in <b>urea or guanidine</b>, so it can rescue inclusion bodies'],1)}</div><div class="card con" style="margin-top:12px"><h3>Cons</h3>${bl(['Host proteins with His clusters co-purify','No solubility boost','<b>EDTA</b> and strong reducing agents can strip nickel'],1)}</div>`,`<div class="card tip"><h3>Pro tips</h3>${bl(['Add 10–20 mM imidazole to lysis buffer','Try cobalt resin (TALON) for higher purity','Insert a TEV or thrombin site if the tag must go','Remove imidazole afterwards by desalting or dialysis'],1)}</div>`)}`,
+'Honest trade-offs build trust. The denaturing option is a big selling point for His.');
+
+/* ---- GST ---- */
+add('t-gst',`${hd('Meet GST','GST-tag','gst')}
+${two(gstSvg,bl(['<b>Glutathione S-transferase</b>, 26 kDa, from the parasite <i>Schistosoma japonicum</i>','Naturally grabs <b>glutathione (GSH)</b>, so beads coated with GSH catch it','Forms <b>dimers</b>: your protein is displayed twice','Often boosts <b>solubility</b> and expression','Needs to be properly folded to bind']),'l')}`,
+'Notice the little yellow GSH capsules sliding into the pockets. GST is an enzyme whose natural substrate we use as bait.');
+
+add('t-gst',`${hd('pGEX vectors','GST-tag','gst')}
+${two(plasmid(maps.gex),bl(['<b>tac promoter</b>: IPTG-inducible, read by E. coli\'s own polymerase, so no DE3 host needed','<b>lacIq</b>: overproduced repressor for tight control','Your gene is fused to the <b>C-terminus of GST</b>','Choose your protease: <b>pGEX-4T</b> thrombin, <b>5X</b> Factor Xa, <b>6P</b> PreScission (HRV 3C)'],1),'l')}`,
+'Contrast with pET: pGEX uses the cell\'s own polymerase, so it works in plain BL21 or even DH5α-type strains.');
+
+add('t-gst',`${hd('GST purification, step by step','GST-tag','gst')}
+${stp(colSvg('10 mM reduced glutathione'),[{t:'1 Bind',d:'Load lysate (PBS, pH about 7.3) onto <b>glutathione-Sepharose</b>. GST fusions stick.'},{t:'2 Wash',d:'Wash with buffer; host proteins leave.'},{t:'3 Elute',d:'<b>10 mM reduced glutathione</b> (50 mM Tris, pH 8) competes for the pockets. Gentle and native.'}],'',leg('gst'))}`,
+'Same flow as His, different competitor. This repetition is intentional: the logic is always bind, wash, compete.');
+
+add('t-gst',`${hd('GST: pros, cons, and pull-downs','GST-tag','gst')}
+${two(`<div class="card pro"><h3>Pros</h3>${bl(['Solubility boost','Gentle native elution','Perfect for <b>pull-down assays</b>'],1)}</div><div class="card con" style="margin-top:12px"><h3>Cons</h3>${bl(['26 kDa tag, and it <b>dimerises</b>','Needs folded GST: no denaturants','May need removal for structure or activity work'],1)}</div>`,
+`<div class="card"><h3>GST pull-down in four moves</h3><div class="arrowrow" style="--c:var(--gst)"><span>GST-bait on beads</span><s>›</s><span>add cell lysate</span><s>›</s><span>wash</span><s>›</s><span>elute and run gel</span></div><p class="note">Partners that stick to the bait come down with it.</p></div>`)}`,
+'The pull-down is GST\'s signature trick: use the tag as a bait holder to fish for interacting partners.');
+
+/* ---- MBP ---- */
+add('t-mbp',`${hd('Meet MBP','MBP-tag','mbp')}
+${two(mbpSvg,bl(['<b>Maltose-binding protein</b>, 42.5 kDa, E. coli\'s own sugar carrier (<i>malE</i>)','Binds <b>amylose resin</b>','Famous <b>solubility enhancer</b>: acts like a built-in chaperone','Big tag, so removal is usually wise','Can be sent to the <b>periplasm</b> (pMAL-p) for disulfide bonds']),'l')}`,
+'Watch the left side clump while the right side stays apart. That is MBP\'s superpower.');
+
+add('t-mbp',`${hd('pMAL vectors','MBP-tag','mbp')}
+${two(plasmid(maps.mal),bl(['<b>tac promoter + lacI</b>: IPTG induction','MBP first, then a <b>protease site</b> (Factor Xa, enterokinase or TEV depending on the vector), then your gene','<b>pMAL-c</b>: cytoplasmic. <b>pMAL-p</b>: has a signal peptide, goes to the periplasm','Tip: grow with <b>0.2% glucose</b> to repress E. coli amylase that would chew the amylose resin'],1),'l')}`,
+'The glucose tip is a classic exam-style detail: amylase would digest the amylose resin.');
+
+add('t-mbp',`${hd('MBP purification, step by step','MBP-tag','mbp')}
+${stp(colSvg('10 mM maltose'),[{t:'1 Bind',d:'Lysate flows over <b>amylose resin</b>. MBP fusions bind; the rest passes through.'},{t:'2 Wash',d:'Wash away host proteins with column buffer.'},{t:'3 Elute',d:'<b>10 mM maltose</b> displaces MBP from the amylose. Collect your fusion protein.'}],'',leg('mbp'))}`,
+'Same pattern again. Ask the audience to predict the elution agent before you reveal it.');
+
+add('t-mbp',`${hd('MBP: pros and cons','MBP-tag','mbp')}
+${two(`<div class="card pro"><h3>Pros</h3>${bl(['Often rescues <b>insoluble</b> proteins','Gentle native elution','Large yields for many targets'],1)}</div>`,`<div class="card con"><h3>Cons</h3>${bl(['42.5 kDa: a big fusion','Amylose resin has lower capacity and costs more','Usually needs cleavage, and the freed protein may then aggregate'],1)}</div>`)}
+<p class="note" style="margin-top:12px">Common combo: <b>His-MBP</b> dual tag, so you can purify on nickel and still enjoy MBP's solubility.</p>`,
+'Mention dual tags as a way to combine strengths. It is common in practice.');
+
+/* ---- protease ---- */
+add('',`${hd('Removing the tag','Tag removal','teal')}
+${stp(prtSvg,[{t:'1 Fusion',d:'Layout: <b>tag, cut site, protein</b>. The cut site is a short sequence only one protease recognises.'},{t:'2 Cut',d:'Add the protease. It snips right at the site.'},{t:'3 Separated',d:'Tag and protein are now separate pieces. A few extra residues may remain on your protein.'}])}
+${bl(['Why bother? Tags can change activity, block crystals and confuse assays','Matters most for big tags like GST and MBP'],1)}`,
+'Tap through. Emphasise that a few leftover residues are normal and usually harmless.');
+
+add('',`${hd('The protease toolbox','Tag removal','teal')}
+<div class="tw"><table><thead><tr><th>Protease</th><th>Cuts at (↓ = cut)</th><th>Good to know</th></tr></thead><tbody>${T([['Thrombin','LVPR↓GS','Cheap; can cut elsewhere in some proteins'],['Factor Xa','IEGR↓','Used in pMAL; occasional off-target cuts'],['Enterokinase','DDDDK↓','Can give a near-native N-terminus'],['TEV','ENLYFQ↓G/S','Very specific; works at 4 °C; His-tagged TEV is common'],['PreScission (HRV 3C)','LEVLFQ↓GP','Works at 4 °C; GST-tagged version available']])}</tbody></table></div>
+<div class="card tip" style="margin-top:12px"><h3>Reverse purification</h3>${bl(['Pass the cut mixture through the <b>same resin again</b>','Tag, uncut fusion and a tagged protease stick','Your <b>pure protein flows through</b>'],1)}</div>`,
+'The reverse purification trick is a favourite: let the resin remove everything you do not want.');
+
+/* ---- Intein ---- */
+add('t-int',`${hd('Inteins: proteins that cut themselves out','Intein','int')}
+${stp(splSvg,[{t:'1 Precursor',d:'An <b>intein</b> sits inside a longer chain, flanked by two <b>exteins</b> (the future protein halves).'},{t:'2 Loop out',d:'The intein catalyses its own excision through a few acyl-shift steps.'},{t:'3 Spliced',d:'The exteins are joined by a new peptide bond; the intein is released.'}])}
+<p class="note">Found first in yeast (1990). In biotech we hijack this to cut a purification tag away without any protease.</p>`,
+'Plain-language summary: a protein that edits itself. That is the core idea behind IMPACT.');
+
+add('t-int',`${hd('pTYB and the IMPACT system','Intein','int')}
+${two(plasmid(maps.tyb),bl(['<b>IMPACT</b> = Intein Mediated Purification with an Affinity Chitin-binding Tag','Fusion: <b>your protein, intein, CBD</b>','<b>CBD</b> (chitin-binding domain) sticks to cheap <b>chitin beads</b>','T7 promoter, so use a T7 expression host (for example ER2566)','Variants: C-terminal or N-terminal intein, pH or temperature triggers'],1),'l')}`,
+'Notice the order on the map: your gene comes first, then intein, then the binding domain.');
+
+add('t-int',`${hd('IMPACT workflow: tag-free in one column','Intein','int')}
+${stp(colSvg('DTT triggers cleavage'),[{t:'1 Bind',d:'The fusion binds <b>chitin beads</b> through the CBD. Host proteins flow out.'},{t:'2 Wash',d:'Stringent wash, for example 500 mM NaCl. Everything non-specific goes.'},{t:'3 Cleave + elute',d:'Add <b>DTT</b> (about 30–50 mM). The intein cuts at its junction: <b>intein-CBD stays on the beads</b>, your protein flows out tag-free. Incubate about 16–40 h at 4–25 °C.'}],'cleave',leg('int'))}`,
+'This is the payoff slide: in stage 3 the pink tag stays behind while the target walks out clean.');
+
+add('t-int',`${hd('Intein systems: strengths and limits','Intein','int')}
+${two(`<div class="card pro"><h3>Pros</h3>${bl(['<b>No protease</b> needed','One column gives tag-free protein','Eluted target carries a C-terminal thioester, handy for <b>expressed protein ligation</b>'],1)}</div>`,`<div class="card con"><h3>Cons</h3>${bl(['Cleavage can start <b>too early</b> inside the cell','Long incubation (many hours)','DTT can reduce disulfides; resin is pricier'],1)}</div>`)}`,
+'Premature cleavage is the main risk. It is why some targets give lower yields with inteins.');
+
+/* ---- comparison ---- */
+add('',`${hd('Side-by-side comparison','Wrap-up','teal')}
+<div class="tw"><table><thead><tr><th></th><th class="h1">His</th><th class="h2">GST</th><th class="h3">MBP</th><th class="h4">Intein (IMPACT)</th></tr></thead><tbody>${T([
+['Size','about 0.8 kDa','26 kDa','42.5 kDa','about 28–55 kDa'],
+['Binds to','Ni²⁺ / Co²⁺','Glutathione','Amylose','Chitin (via CBD)'],
+['Elute with','Imidazole','Reduced glutathione','Maltose','DTT (cleaves tag)'],
+['Solubility boost','No','Moderate','Strong','Varies'],
+['Denaturing OK?','Yes','No','No','No'],
+['Tag removal','Optional (protease)','Protease','Protease','Built in'],
+['Cost','Low','Medium','Medium to high','High']])}</tbody></table></div><p class="note">Swipe the table sideways on small screens.</p>`,
+'Use this as the summary slide. The "Denaturing OK?" row is a favourite viva question.');
+
+add('',`${hd('Which tag should I pick?','Wrap-up','teal')}
+<div class="dec">
+<div style="--c:var(--his);--n:0"><span><strong>Fast and simple, or rescuing inclusion bodies</strong></span><span>→ His-tag</span></div>
+<div style="--c:var(--gst);--n:1"><span><strong>Pull-downs, moderate solubility help</strong></span><span>→ GST</span></div>
+<div style="--c:var(--mbp);--n:2"><span><strong>Protein keeps aggregating</strong></span><span>→ MBP</span></div>
+<div style="--c:var(--int);--n:3"><span><strong>Need native protein, no protease, no leftover tag</strong></span><span>→ Intein</span></div>
+<div style="--c:var(--teal);--n:4"><span><strong>Still stuck?</strong></span><span>→ Dual tags (His-MBP), lower temperature, new host</span></div>
+</div>`,
+'Ask: which one would you choose for an insoluble 80 kDa enzyme? (MBP, possibly with His.)');
+
+add('',`${hd('Troubleshooting cheat sheet','Wrap-up','teal')}
+${two(`<div class="card"><h3>Mostly in inclusion bodies</h3><p class="note">Lower the temperature to 16–25 °C, reduce IPTG, try MBP, or purify under urea and refold.</p></div><div class="card" style="margin-top:12px"><h3>Low yield</h3><p class="note">Check codon usage (Rosetta), try another host, test induction time.</p></div><div class="card" style="margin-top:12px"><h3>Protein degraded</h3><p class="note">Use protease inhibitors, a protease-deficient host and keep everything cold.</p></div>`,
+`<div class="card"><h3>Does not bind the resin</h3><p class="note">Tag may be buried: try the other terminus; check pH and buffer; no EDTA with nickel.</p></div><div class="card" style="margin-top:12px"><h3>Dirty after elution</h3><p class="note">Raise wash imidazole (His), add salt, use cobalt, finish with size-exclusion chromatography.</p></div><div class="card" style="margin-top:12px"><h3>Aggregates after tag removal</h3><p class="note">Keep MBP, add stabilisers, or cut at 4 °C and use immediately.</p></div>`)}`,
+'This slide is a handy photo-worthy reference for the audience.');
+
+add('',`${hd('Take-home','Key points','teal')}
+${bl(['<b>Vector</b> decides how the gene is switched on (pET uses T7; pGEX and pMAL use tac)','<b>Tag</b> decides how the protein is caught and how it behaves','Every affinity step is <b>bind, wash, compete</b>','Tag removal: protease, or <b>self-cleaving intein</b>','Pick the tag for your problem, not by habit'])}
+<div class="mn" style="--c:var(--teal)"><div style="--c:var(--his)"><b>H</b>ook (Ni²⁺)</div><div style="--c:var(--gst)"><b>G</b>lue (glutathione)</div><div style="--c:var(--mbp)"><b>M</b>altose buddy</div><div style="--c:var(--int)"><b>I</b>ntein scissors</div></div>
+<p class="note">Memory trick: H-G-M-I, Hook, Glue, Maltose, Intein.</p>`,
+'End strong with the mnemonic. Then move to the quiz.');
+
+add('',`${hd('Thank you! Quick quiz','Q&A','teal')}
+<p class="lead">Tap a question to reveal the answer.</p>
+<details><summary>1. What is the elution agent for MBP fusions?</summary><p>Maltose (about 10 mM).</p></details>
+<details><summary>2. Which tag still works in 8 M urea?</summary><p>The His-tag, because it only needs exposed histidine side chains.</p></details>
+<details><summary>3. In IMPACT, what triggers tag removal?</summary><p>A thiol such as DTT, which induces the intein to cleave.</p></details>
+<details><summary>4. Why do pET vectors need a DE3 host?</summary><p>The host supplies T7 RNA polymerase, which is the only enzyme that reads the T7 promoter.</p></details>
+<p class="by" style="margin-top:14px">Questions?</p>`,
+'Pause for questions. Reveal answers one at a time and invite guesses first.');
+
+/* ====================== ENGINE ====================== */
+const deck=document.getElementById('deck'),cnt=document.getElementById('cnt'),prog=document.getElementById('prog'),note=document.getElementById('note');
+deck.insertAdjacentHTML('afterbegin',slides.map((s,i)=>`<section class="slide ${s.cls}" data-i="${i}">${s.html}</section>`).join(''));
+const els=[...deck.querySelectorAll('.slide')];
+
+els.forEach(root=>root.querySelectorAll('.stp').forEach(el=>{
+  const steps=JSON.parse(el.dataset.steps),btns=el.querySelector('.stp-btns'),cap=el.querySelector('.stp-cap');
+  btns.innerHTML=steps.map((s,i)=>`<button type="button" data-s="${i+1}">${s.t}</button>`).join('');
+  let timer=null,cur=1;
+  const set=n=>{cur=n;el.dataset.stage=n;[...btns.children].forEach((b,i)=>b.classList.toggle('on',i+1===n));cap.innerHTML=steps[n-1].d};
+  el._start=()=>{set(1);clearInterval(timer);if(!reduced)timer=setInterval(()=>set(cur%steps.length+1),5200)};
+  el._stop=()=>clearInterval(timer);
+  btns.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;clearInterval(timer);set(+b.dataset.s)});
+  set(1);
+}));
+
+let cur=-1;
+function show(i){
+  i=Math.max(0,Math.min(slides.length-1,i));
+  if(cur>=0){els[cur].classList.remove('active');els[cur].querySelectorAll('.stp').forEach(w=>w._stop())}
+  cur=i;const e=els[i];e.classList.add('active');e.scrollTop=0;
+  e.querySelectorAll('.stp').forEach(w=>w._start());
+  cnt.textContent=(i+1)+' / '+slides.length;prog.style.width=((i+1)/slides.length*100)+'%';
+  note.textContent=slides[i].note||'';
+  try{history.replaceState(null,'','#'+(i+1))}catch(_){}
+}
+const go=d=>show(cur+d);
+document.getElementById('next').onclick=()=>go(1);
+document.getElementById('prev').onclick=()=>go(-1);
+document.getElementById('notes').onclick=()=>document.body.classList.toggle('notes');
+document.addEventListener('keydown',e=>{
+  if(e.target.closest&&e.target.closest('summary'))return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(1)}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(-1)}
+  else if(e.key==='Home')show(0);else if(e.key==='End')show(slides.length-1);
+  else if(e.key==='n'||e.key==='N')document.body.classList.toggle('notes');
+  else if(e.key==='f'||e.key==='F'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(_){}}
+});
+let sx=0,sy=0,skip=false;
+deck.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;skip=!!e.target.closest('.tw,.stp-btns,details')},{passive:true});
+deck.addEventListener('touchend',e=>{if(skip)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx<0?1:-1)},{passive:true});
+show((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
